@@ -1,3 +1,7 @@
+export function _isObject(obj) {
+  return typeof obj === 'object' && !!obj;
+}
+
 export const _length = _get('length');
 export function _keys(obj) {
   return _isObject(obj) ? Object.keys(obj) : [];
