@@ -1,7 +1,15 @@
-export function _isObject(obj) {
+function isObject(obj) {
   return typeof obj === 'object' && !!obj;
 }
-export function _curry(fn) {
+function unique(data) {
+  return [...new Set(data)];
+}
+
+function extend(dest, src) {
+  return { ...dest, ...src };
+}
+
+function curry(fn) {
   return function (a, b) {
     return arguments.length === 2
       ? fn(a, b)
@@ -10,7 +18,7 @@ export function _curry(fn) {
       };
   };
 }
-export function _curryr(fn) {
+function curryr(fn) {
   return function (a, b) {
     return arguments.length === 2
       ? fn(a, b)
@@ -19,123 +27,140 @@ export function _curryr(fn) {
       };
   };
 }
-export const _get = _curryr((obj, key) => (obj == null ? undefined : obj[key]));
-export const _length = _get('length');
-export function _keys(obj) {
-  return _isObject(obj) ? Object.keys(obj) : [];
+const get = curryr((obj, key) => (obj == null ? undefined : obj[key]));
+const length = get('length');
+function keys(obj) {
+  return isObject(obj) ? Object.keys(obj) : [];
 }
-export function _each(list, iter) {
-  const keys = _keys(list);
-  for (let i = 0, len = _length(keys); i < len; ++i) {
-    iter(list[keys[i]], keys[i]);
+function each(list, iter) {
+  const listKeys = keys(list);
+  for (let i = 0, len = length(listKeys); i < len; ++i) {
+    iter(list[listKeys[i]], listKeys[i]);
   }
   return list;
 }
-export const _filter = _curryr((list, predi) => {
+const filter = curryr((list, predi) => {
   const newList = [];
-  _each(list, (val) => {
+  each(list, (val) => {
     if (predi(val)) {
       newList.push(val);
     }
   });
   return newList;
 });
-export const _map = _curryr((list, mapper) => {
+const map = curryr((list, mapper) => {
   const newList = [];
-  _each(list, (val, key) => {
+  each(list, (val, key) => {
     newList.push(mapper(val, key));
   });
   return newList;
 });
-export const _pairs = _map((val, key) => [key, val]);
+const pairs = map((val, key) => [key, val]);
 const { slice } = Array.prototype;
-export function _rest(list, num = 1) {
+function rest(list, num = 1) {
   return slice.call(list, num);
 }
-export function _reduce(list, iter, memo) {
+function reduce(list, iter, memo) {
   if (arguments.length === 2) {
     [memo] = list;
-    list = _rest(list);
+    list = rest(list);
   }
-  _each(list, (val) => {
+  each(list, (val) => {
     memo = iter(memo, val);
   });
   return memo;
 }
-export function _pipe(...fns) {
+function flatten(arr, depth = Infinity) {
+  return depth > 0
+    ? reduce(
+      arr,
+      (memo, val) => memo.concat(Array.isArray(val) ? flatten(val, depth - 1) : val),
+      [],
+    )
+    : [...arr];
+}
+function indexBy(data, attr) {
+  return reduce(data, (memo, val) => {
+    memo[val[attr]] = val;
+    return memo;
+  }, {});
+}
+function pipe(...fns) {
   return function (arg) {
-    return _reduce(fns, (acc, fn) => fn(acc), arg);
+    return reduce(fns, (acc, fn) => fn(acc), arg);
   };
 }
-export function _go(arg, ...fns) {
-  return _pipe(...fns)(arg);
+function go(arg, ...fns) {
+  return pipe(...fns)(arg);
 }
 
-function _identity(val) {
+function identity(val) {
   return val;
 }
-export const _values = _map(_identity);
-export function _pluck(data, key) {
-  return _map(data, _get(key));
-}
-
-export function _negate(func) {
+const values = map(identity);
+const pluck = curryr((data, key) => map(data, get(key)));
+const deepPluck = curryr((data, key) => {
+  const pluckKeys = key.split('.');
+  return reduce(pluckKeys, (memo, pluckKey) => go(memo,
+    map(get(pluckKey)), flatten), data);
+});
+function negate(func) {
   return function (val) {
     return !func(val);
   };
 }
 
-export const _reject = _curryr((data, predi) => _filter(data, _negate(predi)));
+const reject = curryr((data, predi) => filter(data, negate(predi)));
 
-export const _compact = _filter(_identity);
+const compact = filter(identity);
 
-export const _find = _curryr((data, predi) => {
-  const keys = _keys(data);
+const find = curryr((data, predi) => {
+  const dataKeys = keys(data);
   let val;
-  for (let i = 0, len = _length(keys); i < len; ++i) {
-    if (predi(data[keys[i]])) {
-      val = data[keys[i]];
+  for (let i = 0, len = length(dataKeys); i < len; ++i) {
+    if (predi(data[dataKeys[i]])) {
+      val = data[dataKeys[i]];
       break;
     }
   }
   return val;
 });
 
-export const _findIndex = _curryr((data, predi) => {
-  const keys = _keys(data);
-  for (let i = 0, len = _length(keys); i < len; ++i) {
-    if (predi(data[keys[i]])) {
+const findIndex = curryr((data, predi) => {
+  const dataKeys = keys(data);
+  for (let i = 0, len = length(dataKeys); i < len; ++i) {
+    if (predi(data[dataKeys[i]])) {
       return i;
     }
   }
   return -1;
 });
 
-export const _some = _curryr((data, predi = _identity) => _findIndex(data, predi) !== -1);
+const some = curryr((data, predi = identity) => findIndex(data, predi) !== -1);
 
-export const _every = _curryr((data, predi = _identity) => _findIndex(data, _negate(predi)) === -1);
+const every = curryr((data, predi = identity) => findIndex(data, negate(predi)) === -1);
 
-export function _min(data) {
-  return _reduce(data, (acc, cur) => (acc < cur ? acc : cur));
+function min(data) {
+  return reduce(data, (acc, cur) => (acc < cur ? acc : cur));
 }
 
-export function _max(data) {
-  return _reduce(data, (acc, cur) => (acc > cur ? acc : cur));
+function max(data) {
+  return reduce(data, (acc, cur) => (acc > cur ? acc : cur));
 }
 
-export const _minBy = _curryr((data, iter) => _go(data, _map((val) => iter(val)), _min));
-export const _maxBy = _curryr((data, iter) => _go(data, _map((val) => iter(val)), _max));
+const minBy = curryr((data, iter) => go(data, map((val) => iter(val)), min));
+const maxBy = curryr((data, iter) => go(data, map((val) => iter(val)), max));
 
-export function _push(obj, key, val) {
+function push(obj, key, val) {
   (obj[key] = obj[key] || []).push(val);
   return obj;
 }
-export const _groupBy = _curryr(
-  (data, iter) => _reduce(data,
-    (group, val) => _push(group, iter(val), val),
+const groupBy = curryr(
+  (data, iter) => reduce(data,
+    (group, val) => push(group, iter(val), val),
     {}),
 );
-export const _increase = function (obj, key) {
+const increase = function (obj, key) {
   if (obj[key]) {
     ++obj[key];
   } else {
@@ -143,8 +168,58 @@ export const _increase = function (obj, key) {
   }
   return obj;
 };
-export const _countBy = _curryr(
-  (data, iter) => _reduce(data,
-    (count, val) => _increase(count, iter(val)),
+const countBy = curryr(
+  (data, iter) => reduce(data,
+    (count, val) => increase(count, iter(val)),
     {}),
 );
+const where = curryr((data, obj) => {
+  const objKeys = keys(obj);
+  return reduce(objKeys, (memo, key) => filter(memo, (val) => val[key] === obj[key]), data);
+});
+
+function contains(data, comparison) {
+  return some(data, (val) => val === comparison);
+}
+
+export default {
+  isObject,
+  unique,
+  extend,
+  curry,
+  curryr,
+  get,
+  length,
+  keys,
+  each,
+  filter,
+  map,
+  pairs,
+  rest,
+  reduce,
+  flatten,
+  indexBy,
+  pipe,
+  go,
+  identity,
+  values,
+  pluck,
+  deepPluck,
+  negate,
+  reject,
+  compact,
+  find,
+  findIndex,
+  some,
+  every,
+  min,
+  max,
+  minBy,
+  maxBy,
+  push,
+  groupBy,
+  increase,
+  countBy,
+  where,
+  contains,
+};
