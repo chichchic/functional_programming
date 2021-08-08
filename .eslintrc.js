@@ -19,5 +19,6 @@ module.exports = {
     'no-param-reassign': 0,
     'import/no-unresolved': 0,
     'import/extensions': 0,
+    'no-restricted-syntax': 0,
   },
 };
