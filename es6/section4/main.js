@@ -7,7 +7,7 @@ const getCheapProductsTotalPrice = _.reduce(
   _.map(
     ({ price }) => price,
     _.filter(
-      ({ price }) => price < 2000,
+      ({ price }) => price < 20000,
       products,
     ),
   ),
