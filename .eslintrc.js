@@ -20,5 +20,6 @@ module.exports = {
     'import/no-unresolved': 0,
     'import/extensions': 0,
     'no-restricted-syntax': 0,
+    'no-cond-assign': 0,
   },
 };
