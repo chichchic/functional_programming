@@ -21,5 +21,6 @@ module.exports = {
     'import/extensions': 0,
     'no-restricted-syntax': 0,
     'no-cond-assign': 0,
+    'guard-for-in': 0,
   },
 };
