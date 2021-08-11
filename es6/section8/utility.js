@@ -32,14 +32,24 @@ const lazyMap = curry(function* (func, iter) {
 // null값이 올 경우를 대비해서 방어적으로 코딩
 const isIterable = (a) => a && a[Symbol.iterator];
 const lazyFlatten = function* (iter) {
-  for (const a of iter) {
-    if (isIterable(a)) {
-      for (const v of a) yield v;
+  for (const v of iter) {
+    if (isIterable(v)) {
+      yield* v;
     } else {
-      yield a;
+      yield v;
     }
   }
 };
+
+function* lazyDeepFlatten(iter) {
+  for (const v of iter) {
+    if (isIterable(v)) {
+      yield* lazyDeepFlatten(v);
+    } else {
+      yield v;
+    }
+  }
+}
 
 const reduce = curry((f, acc, iter) => {
   if (iter === undefined) {
@@ -82,6 +92,7 @@ export default {
   lazyFilter,
   lazyMap,
   lazyFlatten,
+  lazyDeepFlatten,
   reduce,
   join,
   go,
