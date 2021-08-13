@@ -22,5 +22,6 @@ module.exports = {
     'no-restricted-syntax': 0,
     'no-cond-assign': 0,
     'guard-for-in': 0,
+    'prefer-promise-reject-errors': 0,
   },
 };
